@@ -10,6 +10,16 @@ app.listen(3000, () => {
 });
 
 app.use("/user", router);
+
+app.use((err, req, res, next) => {
+  const statusCode = err.statusCode || 500;
+  const errorMessage = err.message || "Internal Server Error";
+  return res.status(statusCode).json({
+    success: false,
+    error: errorMessage,
+    statusCode,
+  });
+});
 mongoose
   .connect(process.env.mongodb_url)
   .then(() => {
