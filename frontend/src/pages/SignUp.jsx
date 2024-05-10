@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import axios from "axios";
+import {useNavigate} from "react-router-dom"
 
 const SignUp = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -28,6 +30,8 @@ const SignUp = () => {
       );
       if (response.status !== 200) {
         setError(true);
+      }else {
+        navigate("/signin")
       }
       setLoading(false);
     } catch (error) {
@@ -37,7 +41,7 @@ const SignUp = () => {
   };
   return (
     <div className="max-w-lg mx-auto">
-      <h1 className="font-semibold text-2xl text-center my-3">SignUp</h1>
+      <h1 className="font-semibold text-2xl text-center my-9">SignUp</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 ">
         <input
           type="text"
