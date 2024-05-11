@@ -1,13 +1,19 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import axios from "axios";
-import {useNavigate} from "react-router-dom"
+import { useNavigate } from "react-router-dom";
+import {
+  signInFailure,
+  signInStart,
+  signInSuccess,
+} from "../redux/user/userSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 const SignIn = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const { loading, error } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -16,9 +22,14 @@ const SignIn = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    dispatch(signInStart());
+
+    if (!navigator.onLine) {
+      dispatch(signInFailure({ error: "Network Error" }));
+      return;
+    }
+
     try {
-      setLoading(true);
-      setError(false);
       const response = await axios.post(
         "http://localhost:3000/user/signin",
         formData,
@@ -28,15 +39,14 @@ const SignIn = () => {
           },
         }
       );
-      if (response.status !== 200) {
-        setError(true);
-      }else navigate("/")
-      setLoading(false);
+      dispatch(signInSuccess(response.data));
+      navigate("/");
     } catch (error) {
-      setLoading(false);
-      setError(true);
+      const err = error.response.data;
+      dispatch(signInFailure(err));
     }
   };
+
   return (
     <div className="max-w-lg mx-auto">
       <h1 className="font-semibold text-2xl text-center my-9">SignIn</h1>
@@ -63,7 +73,7 @@ const SignIn = () => {
         </button>
       </form>
       <div className="flex gap-2 items-center  my-3">
-        <p className="text-[15px] max-2-">Dont Have an account?</p>
+        <p className="text-[15px] max-2-">Don't have an account?</p>
         <NavLink to="/signup">
           <span className="text-[15px] text-blue-500 cursor-pointer">
             Sign Up
@@ -71,7 +81,7 @@ const SignIn = () => {
         </NavLink>
       </div>
       <p className="text-red-500 text-[16px] ">
-        {error && "Something went wrong!!!"}
+        {error ? error.error || "Something went wrong!!!" : ""}
       </p>
     </div>
   );
