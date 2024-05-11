@@ -39,7 +39,8 @@ const SignIn = () => {
           },
         }
       );
-      dispatch(signInSuccess(response.data));
+      console.log(response.data)
+      dispatch(signInSuccess(response.data.user));
       navigate("/");
     } catch (error) {
       const err = error.response.data;
