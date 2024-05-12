@@ -13,7 +13,6 @@ const Auth = () => {
       const provider = new GoogleAuthProvider();
       const auth = getAuth(app);
       const response = await signInWithPopup(auth, provider);
-      console.log(response.user.photoURL);
       dispatch(signInStart());
       const res = await axios.post(
         "http://localhost:3000/user/google-login",
@@ -28,9 +27,9 @@ const Auth = () => {
           },
         }
       );
-      console.log(res.data)
+      console.log(res.data.user)
       if (res.status === 200) {
-        dispatch(signInSuccess(res.data));
+        dispatch(signInSuccess(res.data.user));
         navigate("/");
       }
     } catch (error) {
