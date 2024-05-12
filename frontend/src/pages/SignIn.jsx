@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -6,8 +6,10 @@ import {
   signInFailure,
   signInStart,
   signInSuccess,
+  resetErrorMessage,
 } from "../redux/user/userSlice";
 import { useDispatch, useSelector } from "react-redux";
+import Auth from "../components/Auth";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -23,7 +25,6 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     dispatch(signInStart());
-
     if (!navigator.onLine) {
       dispatch(signInFailure({ error: "Network Error" }));
       return;
@@ -39,7 +40,7 @@ const SignIn = () => {
           },
         }
       );
-      console.log(response.data)
+      console.log(response.data);
       dispatch(signInSuccess(response.data.user));
       navigate("/");
     } catch (error) {
@@ -47,7 +48,9 @@ const SignIn = () => {
       dispatch(signInFailure(err));
     }
   };
-
+  useEffect(() => {
+    dispatch(resetErrorMessage());
+  }, []);
   return (
     <div className="max-w-lg mx-auto">
       <h1 className="font-semibold text-2xl text-center my-9">SignIn</h1>
@@ -68,10 +71,11 @@ const SignIn = () => {
         ></input>
         <button
           disabled={loading}
-          className="bg-slate-700 text-[15px] text-white uppercase p-2 rounded-lg hover:bg-slate-800 disabled:opacity-80"
+          className="bg-slate-700 text-[14px] text-white uppercase p-2 rounded-lg hover:bg-slate-800 disabled:opacity-80"
         >
           {loading ? "Loading..." : "Sign In"}
         </button>
+        <Auth />
       </form>
       <div className="flex gap-2 items-center  my-3">
         <p className="text-[15px] max-2-">Don't have an account?</p>

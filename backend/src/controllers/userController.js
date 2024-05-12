@@ -46,4 +46,36 @@ const signIn = async (req, res, next) => {
     next(error);
   }
 };
-module.exports = { signUp, signIn };
+
+const auth = async (req, res, next) => {
+  const { email, displayName, photoUrl } = req.body;
+  console.log(req.body);
+  try {
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      userExists.password = undefined;
+      const token = jwt.sign({ userExists }, "secretKey", { expiresIn: "20h" });
+      res
+        .cookie("access-token", token)
+        .status(200)
+        .json({ message: "User Logged In", user: userExists });
+    } else {
+      const userName = displayName.split(" ").join("").toLowerCase();
+      const generatedPassword = bcrypt.hashSync(
+        Math.random().toString(36).slice(-8),
+        10
+      );
+      const newUser = await User({
+        email,
+        username: userName,
+        profilePicture: photoUrl,
+        password: generatedPassword,
+      });
+      await newUser.save();
+      res.status(200).json({ message: "User Registered", newUser , newUser });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+module.exports = { signUp, signIn, auth };

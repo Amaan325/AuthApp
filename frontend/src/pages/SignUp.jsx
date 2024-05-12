@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import axios from "axios";
 import {useNavigate} from "react-router-dom"
+import Auth from "../components/Auth";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -70,6 +71,7 @@ const SignUp = () => {
         >
           {loading ? "Loading..." : "Sign Up"}
         </button>
+        <Auth />
       </form>
       <div className="flex gap-2 items-center  my-3">
         <p className="text-[15px] max-2-">Have an account?</p>
