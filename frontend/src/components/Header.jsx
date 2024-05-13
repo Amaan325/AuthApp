@@ -4,9 +4,9 @@ import { useSelector } from "react-redux";
 
 const Header = () => {
   const {currentUser} = useSelector((state) => state.user);
-  // useEffect(() => {
-  //   console.log(currentUser);
-  // }, []);
+  useEffect(() => {
+    console.log(currentUser.profilePicture);
+  }, []);
   return (
     <div>
       <div className="bg-slate-200 ">

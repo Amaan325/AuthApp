@@ -42,7 +42,7 @@ const SignUp = () => {
   };
   return (
     <div className="max-w-lg mx-auto">
-      <h1 className="font-semibold text-2xl text-center my-9">SignUp</h1>
+      <h1 className="font-semibold text-3xl text-center my-9">SignUp</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 ">
         <input
           type="text"
