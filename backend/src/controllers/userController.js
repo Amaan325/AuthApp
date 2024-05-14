@@ -35,7 +35,7 @@ const signIn = async (req, res, next) => {
       return;
     }
     validUser.password = undefined;
-    const token = jwt.sign({ validUser }, "secret_keyToken", {
+    const token = jwt.sign({ validUser }, process.env.SECRET_KEY, {
       expiresIn: "20h",
     });
     res
@@ -54,7 +54,9 @@ const auth = async (req, res, next) => {
     const userExists = await User.findOne({ email });
     if (userExists) {
       userExists.password = undefined;
-      const token = jwt.sign({ userExists }, "secretKey", { expiresIn: "20h" });
+      const token = jwt.sign({ userExists }, process.env.SECRET_KEY, {
+        expiresIn: "20h",
+      });
       res
         .cookie("access-token", token)
         .status(200)
@@ -72,10 +74,34 @@ const auth = async (req, res, next) => {
         password: generatedPassword,
       });
       await newUser.save();
-      res.status(200).json({ message: "User Registered", newUser , newUser });
+      res.status(200).json({ message: "User Registered", newUser, newUser });
     }
   } catch (error) {
     next(error);
   }
 };
-module.exports = { signUp, signIn, auth };
+
+const update = async (req, res, next) => {
+  if (req.user._id != req.params._id)
+    return next(errorHandler(404, "Not Found"));
+  console.log("I am here");
+  try {
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: req.params._id },
+      {
+        $set: {
+          username: req.body.username,
+          profilePicture: req.body.profilePicture,
+          email: req.body.email,
+          password: req.body.password,
+        },
+      },
+      { new: true }
+    );
+    updatedUser.password = undefined
+    return res.status(200).json({user:updatedUser});
+  } catch (error) {
+    next(error);
+  }
+};
+module.exports = { signUp, signIn, auth, update };

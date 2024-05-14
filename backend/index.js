@@ -4,8 +4,10 @@ const mongoose = require("mongoose");
 const router = require("./src/routes/userRoutes");
 const cors = require("cors");
 require("dotenv").config();
+const cookieParser = require("cookie-parser")
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors({origin:"http://localhost:5173"  ,credentials: true}));
 app.listen(3000, () => {
   console.log(`Server running on port 3000!`);

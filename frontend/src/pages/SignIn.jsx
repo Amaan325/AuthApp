@@ -38,6 +38,7 @@ const SignIn = () => {
           headers: {
             "Content-type": "application/json",
           },
+          withCredentials: true,
         }
       );
       console.log(response.data);
