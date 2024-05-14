@@ -15,6 +15,10 @@ const Profile = () => {
   const [imagePer, setImagePer] = useState();
   const [imageError, setImageError] = useState(false);
   const [formData, setFormData] = useState({});
+
+  useEffect(() => {
+    console.log(formData);
+  }, [formData]);
   useEffect(() => {
     if (image) {
       handleUpload(image);
@@ -38,7 +42,11 @@ const Profile = () => {
         },
         () => {
           getDownloadURL(uploadedImage.snapshot.ref).then((downloadURL) => {
-            setFormData(...prevData, { profilePicture: downloadURL });
+            setFormData((prevData) => ({
+              ...prevData,
+              profilePicture: downloadURL,
+            }));
+            // console.log(formData);
           });
         }
       );
@@ -57,7 +65,10 @@ const Profile = () => {
         ></input>
         <img
           className="w-20 h-20 rounded-full self-center mb-3 cursor-pointer"
-          src={currentUser.profilePicture}
+          src={
+            formData.profilePicture
+              ||currentUser.profilePicture
+          }
           onClick={() => fileRef.current.click()}
         ></img>
         <p className="text-sm self-center">
