@@ -25,9 +25,9 @@ const Auth = () => {
           headers: {
             "Content-type": "application/json",
           },
+          withCredentials: true
         }
       );
-      console.log(res.data.user)
       if (res.status === 200) {
         dispatch(signInSuccess(res.data.user));
         navigate("/");

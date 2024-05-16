@@ -4,18 +4,17 @@ const jwt = require("jsonwebtoken");
 const errorHandler = require("../../utils/error");
 const signUp = async (req, res, next) => {
   try {
-    console.log(req.body);
     const { username, email, password } = req.body;
     const hashPassword = bcrypt.hashSync(password, 10);
-    const newUser = new User({
+    const validUser = new User({
       username: username,
       email: email,
       password: hashPassword,
     });
-    await newUser.save();
+    await validUser.save();
     res
       .status(200)
-      .json({ message: "User Registered Successfully", user: newUser });
+      .json({ message: "User Registered Successfully", user: validUser });
   } catch (error) {
     next(error);
   }
@@ -49,42 +48,60 @@ const signIn = async (req, res, next) => {
 
 const auth = async (req, res, next) => {
   const { email, displayName, photoUrl } = req.body;
-  console.log(req.body);
+
   try {
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      userExists.password = undefined;
-      const token = jwt.sign({ userExists }, process.env.SECRET_KEY, {
+    const validUser = await User.findOne({ email });
+
+    if (validUser) {
+      console.log("User found:", validUser);
+
+      validUser.password = undefined;
+
+      const token = jwt.sign({ validUser }, process.env.SECRET_KEY, {
         expiresIn: "20h",
       });
+      console.log(token);
       res
-        .cookie("access-token", token)
+        .cookie("access_token", token)
         .status(200)
-        .json({ message: "User Logged In", user: userExists });
+        .json({ message: "User Logged In", user: validUser });
     } else {
+      console.log("User not found, creating a new user");
+
       const userName = displayName.split(" ").join("").toLowerCase();
       const generatedPassword = bcrypt.hashSync(
         Math.random().toString(36).slice(-8),
         10
       );
-      const newUser = await User({
+
+      const validUser = new User({
         email,
         username: userName,
         profilePicture: photoUrl,
         password: generatedPassword,
       });
-      await newUser.save();
-      res.status(200).json({ message: "User Registered", newUser, newUser });
+
+      await validUser.save();
+
+      validUser.password = undefined;
+      const token = jwt.sign({ validUser }, process.env.SECRET_KEY, {
+        expiresIn: "20h",
+      });
+
+      res
+        .cookie("access_token", token)
+        .status(200)
+        .json({ message: "User Registered", user: validUser });
     }
   } catch (error) {
+    console.error("Error in auth controller:", error);
     next(error);
   }
 };
 
 const update = async (req, res, next) => {
   if (req.user._id != req.params._id)
-    return next(errorHandler(404, "Not Found"));
-  console.log("I am here");
+    return next(errorHandler(404, "You can only update your account"));
   try {
     const updatedUser = await User.findOneAndUpdate(
       { _id: req.params._id },
@@ -98,8 +115,8 @@ const update = async (req, res, next) => {
       },
       { new: true }
     );
-    updatedUser.password = undefined
-    return res.status(200).json({user:updatedUser});
+    updatedUser.password = undefined;
+    return res.status(200).json({ user: updatedUser });
   } catch (error) {
     next(error);
   }
