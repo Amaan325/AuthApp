@@ -121,4 +121,16 @@ const update = async (req, res, next) => {
     next(error);
   }
 };
-module.exports = { signUp, signIn, auth, update };
+
+const deleteUser = async (req, res, next) => {
+  if (req.user._id != req.params._id)
+    return next(errorHandler(404, "You can only delete your account"));
+  try {
+    const isDeleted = await User.findOneAndDelete({ _id: req.params._id });
+    if (isDeleted) next(errorHandler(200, "User Got Deleted"));
+    else next(errorHandler(404, "User Not found"));
+  } catch (error) {
+    next(error);
+  }
+};
+module.exports = { signUp, signIn, auth, update, deleteUser };

@@ -11,6 +11,9 @@ import {
   updateUserStart,
   updateUserSuccess,
   signInSuccess,
+  signInFailure,
+  resetErrorMessage,
+  deleteUser,
 } from "../redux/user/userSlice";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -97,6 +100,29 @@ const Profile = () => {
     }
   };
 
+  const handleDeleteUser = async (e) => {
+    try {
+      const response = await axios.delete(
+        `http://localhost:3000/user/delete/${currentUser._id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      if (response.status === 200) {
+        console.log(response.status);
+        dispatch(deleteUser());
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleSignOut = async () => {
+    dispatch(deleteUser());
+  };
   return (
     <div className="mx-auto max-w-lg ">
       <h1 className="font-semibold text-center text-3xl mt-9 my-4 ">Profile</h1>
@@ -158,14 +184,20 @@ const Profile = () => {
         </button>
       </form>
       <div className="mt-3 flex justify-between">
-        <span className="text-red-700 font-normal cursor-pointer">
+        <span
+          onClick={handleDeleteUser}
+          className="text-sm text-red-700 font-normal cursor-pointer"
+        >
           Delete Account
         </span>
-        <span className="text-red-700 font-normal cursor-pointer">
+        <span
+          onClick={handleSignOut}
+          className="text-sm text-red-700 font-normal cursor-pointer"
+        >
           Sign out
         </span>
       </div>
-      <p>
+      <p className="mt-3 ">
         {error ? (
           <span className="mt-3 text-red-500 text-sm">
             Something went wrong
