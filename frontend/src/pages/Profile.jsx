@@ -121,7 +121,21 @@ const Profile = () => {
   };
 
   const handleSignOut = async () => {
-    dispatch(deleteUser());
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/user/signout`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      if (response.status === 200) dispatch(deleteUser());
+      console.log("Sign Out");
+    } catch (error) {
+      console.log(error);
+    }
   };
   return (
     <div className="mx-auto max-w-lg ">

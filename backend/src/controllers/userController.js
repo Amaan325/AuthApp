@@ -127,10 +127,16 @@ const deleteUser = async (req, res, next) => {
     return next(errorHandler(404, "You can only delete your account"));
   try {
     const isDeleted = await User.findOneAndDelete({ _id: req.params._id });
-    if (isDeleted) next(errorHandler(200, "User Got Deleted"));
-    else next(errorHandler(404, "User Not found"));
+    if (isDeleted) {
+      res.clearCookie("access_token");
+      next(errorHandler(200, "User Got Deleted"));
+    } else next(errorHandler(404, "User Not found"));
   } catch (error) {
     next(error);
   }
 };
-module.exports = { signUp, signIn, auth, update, deleteUser };
+
+const signOut = async (req, res, next) => {
+  res.clearCookie("access_token").status(200).json({ message: "Sign out" });
+};
+module.exports = { signUp, signIn, auth, update, deleteUser, signOut };
