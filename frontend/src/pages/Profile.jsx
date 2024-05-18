@@ -3,29 +3,47 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   getStorage,
   ref,
-  uploadBytes,
   uploadBytesResumable,
   getDownloadURL,
 } from "firebase/storage";
-import { signInSuccess } from "../redux/user/userSlice";
+import {
+  updateUserFailure,
+  updateUserStart,
+  updateUserSuccess,
+  signInSuccess,
+} from "../redux/user/userSlice";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser, loading, error } = useSelector((state) => state.user);
   const fileRef = useRef();
   const [image, setImage] = useState(undefined);
-  const [imagePer, setImagePer] = useState();
+  const [isEmpty, setIsEmpty] = useState(false); // Changed default state to false
+  const [imagePer, setImagePer] = useState(0); // Changed default state to 0
   const [imageError, setImageError] = useState(false);
   const [formData, setFormData] = useState({});
+  const [userUpdate, setUserUpdate] = useState(false);
+
   const handleUpdate = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
+    setIsEmpty(false); // Ensure isEmpty is set to false on input change
   };
+
   const submitUpdate = async (e) => {
     e.preventDefault();
 
     try {
+      dispatch(updateUserStart());
+      if (Object.keys(formData).length === 0 && image === undefined) {
+        setIsEmpty(true);
+        dispatch(updateUserFailure());
+        dispatch(signInSuccess(currentUser));
+        return;
+      }
       const response = await axios.put(
         `http://localhost:3000/user/update/${currentUser._id}`,
         formData,
@@ -37,26 +55,23 @@ const Profile = () => {
         }
       );
       if (response.status === 200) {
-        console.log(response.data.user);
-        dispatch(signInSuccess(response.data.user));
+        dispatch(updateUserSuccess(response.data.user));
+        setUserUpdate(true);
         setFormData({});
       }
     } catch (error) {
-      console.log(error);
+      dispatch(updateUserFailure(error));
     }
   };
 
-  // useEffect(() => {
-  //   console.log(currentUser);
-  // }, [currentUser]);
   useEffect(() => {
     if (image) {
       handleUpload(image);
     }
   }, [image]);
+
   const handleUpload = (image) => {
     if (image) {
-      console.log(image);
       const storage = getStorage();
       const storageRef = ref(storage, new Date().getTime() + image.name);
       const uploadedImage = uploadBytesResumable(storageRef, image);
@@ -68,7 +83,7 @@ const Profile = () => {
           setImagePer(Math.round(progress));
         },
         (error) => {
-          setImageError(error);
+          setImageError(true); // Set imageError to true if upload fails
         },
         () => {
           getDownloadURL(uploadedImage.snapshot.ref).then((downloadURL) => {
@@ -76,18 +91,18 @@ const Profile = () => {
               ...prevData,
               profilePicture: downloadURL,
             }));
-            // console.log(formData);
           });
         }
       );
     }
   };
+
   return (
     <div className="mx-auto max-w-lg ">
       <h1 className="font-semibold text-center text-3xl mt-9 my-4 ">Profile</h1>
       <form onSubmit={submitUpdate} className="flex flex-col gap-2">
         <input
-          className="hidden "
+          className="hidden"
           ref={fileRef}
           type="file"
           accept="image/*"
@@ -97,6 +112,7 @@ const Profile = () => {
           className="w-20 h-20 rounded-full self-center mb-3 cursor-pointer"
           src={formData.profilePicture || currentUser.profilePicture}
           onClick={() => fileRef.current.click()}
+          alt="Profile" // Added alt attribute for accessibility
         ></img>
         <p className="text-sm self-center">
           {imageError ? (
@@ -138,13 +154,32 @@ const Profile = () => {
           onChange={handleUpdate}
         ></input>
         <button className="bg-slate-700 p-3 rounded-lg text-white uppercase">
-          Update
+          {loading ? "Loading..." : "Update"}
         </button>
       </form>
       <div className="mt-3 flex justify-between">
-        <span className="text-red-700 font-normal">Delete Account</span>
-        <span className="text-red-700 font-normal">Sign out</span>
+        <span className="text-red-700 font-normal cursor-pointer">
+          Delete Account
+        </span>
+        <span className="text-red-700 font-normal cursor-pointer">
+          Sign out
+        </span>
       </div>
+      <p>
+        {error ? (
+          <span className="mt-3 text-red-500 text-sm">
+            Something went wrong
+          </span>
+        ) : isEmpty ? (
+          <span className="mt-3 text-red-500 text-sm">Fill in something</span>
+        ) : userUpdate ? (
+          <span className="mt-3 text-green-400 text-sm ">
+            User Updated Successfully
+          </span>
+        ) : (
+          ""
+        )}
+      </p>
     </div>
   );
 };
